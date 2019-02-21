@@ -5,7 +5,7 @@
 #include <WiFi.h>
 #include "RealTimeStore.h"
 
-RealTimeStore realTimeStore(PATHFB);
+RealTimeStore realTimeStore(PATHFB_OUT, PATHFB_IN);
 
 float temperature = 0.0;
 float humedity = 0.0;
@@ -13,15 +13,15 @@ float humedity = 0.0;
 // The value will quickly become too large for an int to store
 unsigned long previousMillis = 0; // will store last time LED was updated
 
-// constants won't change:
-const long interval = 1000; // interval at which to blink (milliseconds)
+// Initial definition 1 sg
+long interval = 1000; // interval at which to read Humedity & Temperature (milliseconds)
 
 void setup()
 {
-
   Serial.begin(115200);
   connectWIFI();
   realTimeStore.connect(FIREBASE_HOST, FIREBASE_AUTH);
+  realTimeStore.setCallback("interval", streamCallback ,streamTimeoutCallback);
 }
 
 void loop()
@@ -69,4 +69,44 @@ float tmsTemperatureRead()
 float tmsHumedityRead()
 {
   return (random(65, 80));
+}
+
+
+void streamCallback(streamData data)
+{
+    long valor =0;
+    Serial.println("-------Stream Data1 available-------");
+    Serial.println("STREAM PATH: " + data.streamPath());
+    Serial.println("PATH: " + data.dataPath());
+    Serial.println("TYPE: " + data.dataType());
+    Serial.print("VALUE: ");
+    if (data.dataType() == "int")
+    {
+        valor = data.intData();
+        if (valor)
+        {
+          interval = valor;
+          Serial.print("Aunmento invervalo... ");
+        }
+        else
+        {
+          interval = 0;
+          Serial.print("Reseteo invervalo... ");
+        }
+        Serial.println(valor);          
+    }
+    else if (data.dataType() == "float")
+        Serial.println(data.floatData());
+    else if (data.dataType() == "string")
+        Serial.println(data.stringData());
+    else if (data.dataType() == "json")
+        Serial.println(data.jsonData());
+    Serial.println();
+}
+
+void streamTimeoutCallback()
+{
+    Serial.println();
+    Serial.println("Stream timeout, resume streaming...");
+    Serial.println();
 }

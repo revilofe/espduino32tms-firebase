@@ -7,7 +7,8 @@
 
 #define TEMPERATURE "temperature"
 #define HUMEDITY "humedity"
-#define PATHFB "/dht11-tms"
+#define PATHFB_OUT "/dht11-tms"
+#define PATHFB_IN "/param-tms"
 
 float tmsTemperatureRead();
 float tmsHumedityRead();

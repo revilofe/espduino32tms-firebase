@@ -3,19 +3,19 @@
 // Constructor sobrecargado
 RealTimeStore::RealTimeStore()
 {
-    
 }
 
 // Constructor sobrecargado
-RealTimeStore::RealTimeStore(String pathFB)
+RealTimeStore::RealTimeStore(String pathFB_out, String pathFB_in)
 {
-    myPathFB = pathFB;
+    myPathFB_out = pathFB_out;
+    myPathFB_in = pathFB_in;
 }
 
 // Destructor
 RealTimeStore::~RealTimeStore()
 {
-    //delete rad;
+    //delete ;
 }
 
 // Destructor
@@ -26,7 +26,7 @@ void RealTimeStore::connect(const String host, const String auth)
     Firebase.reconnectWiFi(true);
 }
 
-// Establecer el radio del círculo
+// Pregunta por si existe el nodo de salida (Donde se escriben los datos leidos)
 bool RealTimeStore::existNode()
 {
     bool exist;
@@ -36,17 +36,17 @@ bool RealTimeStore::existNode()
 
     Serial.println();
 
-    exist = Firebase.pathExist(firebaseData, myPathFB);
+    exist = Firebase.pathExist(firebaseData_out, myPathFB_out);
     if (exist)
-        Serial.println(String("") + "Path " + myPathFB + " exists");
+        Serial.println(String("") + "Path " + myPathFB_out + " exists");
     else
-        Serial.println(String("") + "Path " + myPathFB + " is not exist");
+        Serial.println(String("") + "Path " + myPathFB_out + " is not exist");
     Serial.println();
 
     return exist;
 }
 
-// Establecer el diámetro del círculo
+// Borra nodo de salida (Donde se escriben los datos leidos)
 bool RealTimeStore::deleteNode()
 {
     //Si fuera necesario borrar el nodo.
@@ -58,17 +58,17 @@ bool RealTimeStore::deleteNode()
 
     Serial.println();
 
-    deletedOK = Firebase.deleteNode(firebaseData, myPathFB);
+    deletedOK = Firebase.deleteNode(firebaseData_out, myPathFB_out);
     if (deletedOK)
-        Serial.println(String("") + "Path " + myPathFB + " deleted!");
+        Serial.println(String("") + "Path " + myPathFB_out + " deleted!");
     else
-        Serial.println(String("") + "Path " + myPathFB + " - Error, no deleted!");
+        Serial.println(String("") + "Path " + myPathFB_out + " - Error, no deleted!");
     Serial.println();
 
     return deletedOK;
 }
 
-// Cálculo del área del círculo
+// Envia los datos leidos
 bool RealTimeStore::sendIntValue(const String tag, int value)
 {
     Serial.println("--------------------------------------------------");
@@ -76,31 +76,49 @@ bool RealTimeStore::sendIntValue(const String tag, int value)
     Serial.println("--------------------------------------------------");
     Serial.println();
 
-    bool sendOK = Firebase.setInt(firebaseData, String("") + myPathFB + "/" + tag, value);
+    bool sendOK = Firebase.setInt(firebaseData_out, String("") + myPathFB_out + "/" + tag, value);
     if (sendOK)
     {
         Serial.println("----------Set result-----------");
-        Serial.println("PATH: " + firebaseData.dataPath());
+        Serial.println("PATH: " + firebaseData_out.dataPath());
         Serial.print("PUSH NAME: ");
-        Serial.println("TYPE: " + firebaseData.dataType());
+        Serial.println("TYPE: " + firebaseData_out.dataType());
         Serial.print("VALUE: ");
-        if (firebaseData.dataType() == "int")
-            Serial.println(firebaseData.intData());
-        else if (firebaseData.dataType() == "float")
-            Serial.println(firebaseData.floatData());
-        else if (firebaseData.dataType() == "string")
-            Serial.println(firebaseData.stringData());
-        else if (firebaseData.dataType() == "json")
-            Serial.println(firebaseData.jsonData());
+        if (firebaseData_out.dataType() == "int")
+            Serial.println(firebaseData_out.intData());
+        else if (firebaseData_out.dataType() == "float")
+            Serial.println(firebaseData_out.floatData());
+        else if (firebaseData_out.dataType() == "string")
+            Serial.println(firebaseData_out.stringData());
+        else if (firebaseData_out.dataType() == "json")
+            Serial.println(firebaseData_out.jsonData());
         Serial.println("--------------------------------");
         Serial.println();
     }
     else
     {
         Serial.println("----------Can't Set data--------");
-        Serial.println("REASON: " + firebaseData.errorReason());
+        Serial.println("REASON: " + firebaseData_out.errorReason());
         Serial.println("--------------------------------");
         Serial.println();
     }
     return sendOK;
+}
+
+// Envia los datos leidos
+bool RealTimeStore::setCallback(const String tagParam, StreamEventCallback dataAvailablecallback, StreamTimeoutCallback timeoutCallback)
+{
+    Serial.println("**************************************");
+    Serial.println("----------Set CallBack Test-----------");
+    Serial.println("**************************************");
+    Serial.println();
+
+    bool setCallbackOK = Firebase.beginStream(firebaseData_in, String("") + myPathFB_in + "/" + tagParam);
+    if (!setCallbackOK)
+    {
+        Serial.println("------Can't begin stream 1 connection------");
+        Serial.println("REASON: " + firebaseData_in.errorReason());
+        Serial.println();
+    }
+    Firebase.setStreamCallback(firebaseData_in, dataAvailablecallback, timeoutCallback);
 }
