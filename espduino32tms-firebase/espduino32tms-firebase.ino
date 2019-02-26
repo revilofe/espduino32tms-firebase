@@ -14,7 +14,7 @@ float humedity = 0.0;
 unsigned long previousMillis = 0; // will store last time LED was updated
 
 // Initial definition 1 sg
-long interval = 1000; // interval at which to read Humedity & Temperature (milliseconds)
+long interval = 10000; // interval at which to read Humedity & Temperature (milliseconds)
 
 void setup()
 {
@@ -33,7 +33,7 @@ void loop()
   // the interval at which you want to read temperature & Humedity.
   unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= interval)
+  if ((interval) && (currentMillis - previousMillis >= interval))
   {
     // save the last time you read Temperature & Humedity
     previousMillis = currentMillis;
@@ -74,39 +74,47 @@ float tmsHumedityRead()
 
 void streamCallback(streamData data)
 {
-    long valor =0;
-    Serial.println("-------Stream Data1 available-------");
+    unsigned long  valor =0;
+    Serial.println("************************* Stream Data1 available ************************* ");
     Serial.println("STREAM PATH: " + data.streamPath());
     Serial.println("PATH: " + data.dataPath());
     Serial.println("TYPE: " + data.dataType());
     Serial.print("VALUE: ");
     if (data.dataType() == "int")
     {
-        valor = data.intData();
-        if (valor)
-        {
-          interval = valor;
-          Serial.print("Aunmento invervalo... ");
-        }
-        else
-        {
-          interval = 0;
-          Serial.print("Reseteo invervalo... ");
-        }
-        Serial.println(valor);          
+      valor = data.intData();          
+      Serial.println(valor);          
     }
     else if (data.dataType() == "float")
         Serial.println(data.floatData());
     else if (data.dataType() == "string")
-        Serial.println(data.stringData());
+    {
+        //Quita ""
+        String svalor = data.stringData();
+        svalor = svalor.substring(1,svalor.length()-1)+"\0";
+        valor = svalor.toInt();
+    }
     else if (data.dataType() == "json")
         Serial.println(data.jsonData());
     Serial.println();
+    
+    // Recupero el valor
+    if (valor)
+    {
+      interval = valor;
+      Serial.println("Aumento invervalo... "+String(interval));
+    }
+    else
+    {
+      interval = 0;
+      previousMillis = 0;
+      Serial.println("Reseteo invervalo... "+String(interval));
+    }
 }
 
 void streamTimeoutCallback()
 {
     Serial.println();
-    Serial.println("Stream timeout, resume streaming...");
+    Serial.println("######  Stream timeout, resume streaming...");
     Serial.println();
 }
