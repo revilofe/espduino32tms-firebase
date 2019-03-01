@@ -32,7 +32,8 @@ class RealTimeStore
     bool existNode(); // Existe el nodo {1: SI; <1: NO}
     bool deleteNode();
     bool sendIntValue(const String tag, int value);
-    bool setCallback(const String tagParam, StreamEventCallback dataAvailablecallback, StreamTimeoutCallback timeoutCallback);
+    bool setCallback(const String tagParam, StreamEventCallback dataAvailablecallback,\
+         StreamTimeoutCallback timeoutCallback);
 
 };
 

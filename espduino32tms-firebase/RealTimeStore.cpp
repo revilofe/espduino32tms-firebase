@@ -26,7 +26,8 @@ void RealTimeStore::connect(const String host, const String auth)
     Firebase.reconnectWiFi(true);
 }
 
-// Pregunta por si existe el nodo de salida (Donde se escriben los datos leidos)
+// Pregunta por si existe el nodo del flujo de salida 
+// (Donde se escriben los datos leidos)
 bool RealTimeStore::existNode()
 {
     bool exist;
@@ -46,7 +47,7 @@ bool RealTimeStore::existNode()
     return exist;
 }
 
-// Borra nodo de salida (Donde se escriben los datos leidos)
+// Borra nodo del flujo de salida (Arbol en el que se escriben los valores )
 bool RealTimeStore::deleteNode()
 {
     //Si fuera necesario borrar el nodo.
@@ -68,15 +69,16 @@ bool RealTimeStore::deleteNode()
     return deletedOK;
 }
 
-// Envia los datos leidos
-bool RealTimeStore::sendIntValue(const String tag, int value)
+// Envia los datos leidos sobre el topic 
+bool RealTimeStore::sendIntValue(const String topic, int value)
 {
     Serial.println("--------------------------------------------------");
     Serial.println("----------Begin Set (SendIntValue) Test-----------");
     Serial.println("--------------------------------------------------");
     Serial.println();
 
-    bool sendOK = Firebase.setInt(firebaseData_out, String("") + myPathFB_out + "/" + tag, value);
+    bool sendOK = Firebase.setInt(firebaseData_out, String("") + myPathFB_out \
+            + "/" + topic, value);
     if (sendOK)
     {
         Serial.println("----------Set result-----------");
@@ -105,20 +107,26 @@ bool RealTimeStore::sendIntValue(const String tag, int value)
     return sendOK;
 }
 
-// Envia los datos leidos
-bool RealTimeStore::setCallback(const String tagParam, StreamEventCallback dataAvailablecallback, StreamTimeoutCallback timeoutCallback)
+// Se subscribe a las modificaciones que se realicen sobre el topic, en cuyo
+// caso cuando haya cambios llamarán a la función dataAvailablecallback
+bool RealTimeStore::setCallback(const String topic, StreamEventCallback \ 
+        dataAvailablecallback, StreamTimeoutCallback timeoutCallback)
 {
     Serial.println("**************************************");
     Serial.println("----------Set CallBack Test-----------");
     Serial.println("**************************************");
     Serial.println();
 
-    bool setCallbackOK = Firebase.beginStream(firebaseData_in, String("") + myPathFB_in + "/" + tagParam);
+    // Aqui es donde se subscribe 
+    bool setCallbackOK = Firebase.beginStream(firebaseData_in, String("") \
+            + myPathFB_in + "/" + topic);
     if (!setCallbackOK)
     {
         Serial.println("------Can't begin stream 1 connection------");
         Serial.println("REASON: " + firebaseData_in.errorReason());
         Serial.println();
     }
+    // Aqui se establece el callback
     Firebase.setStreamCallback(firebaseData_in, dataAvailablecallback, timeoutCallback);
+    return setCallbackOK;
 }
