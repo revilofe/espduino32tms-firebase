@@ -33,3 +33,5 @@
 
 # Directorio
 espduino32tms-firebase/.vscode/*
+build/*
+.directory
